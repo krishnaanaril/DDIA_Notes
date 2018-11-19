@@ -73,19 +73,19 @@ base query languages but have interesting parallels.
 Although we have covered a lot of ground, there are still many data models left
 unmentioned. To give just a few brief examples:
 
-• Researchers working with genome data often need to perform sequence-
+1. Researchers working with genome data often need to perform sequence-
 similarity searches, which means taking one very long string (representing a
 DNA molecule) and matching it against a large database of strings that are simi‐
 lar, but not identical. None of the databases described here can handle this kind
 of usage, which is why researchers have written specialized genome database
 software like GenBank [48].
 
-• Particle physicists have been doing Big Data–style large-scale data analysis for
+2. Particle physicists have been doing Big Data–style large-scale data analysis for
 decades, and projects like the Large Hadron Collider (LHC) now work with hun‐
 dreds of petabytes! At such a scale custom solutions are required to stop the
 hardware cost from spiraling out of control [49].
 
-• Full-text search is arguably a kind of data model that is frequently used alongside
+3. Full-text search is arguably a kind of data model that is frequently used alongside
 databases. Information retrieval is a large specialist subject that we won’t cover in
 great detail in this book, but we’ll touch on search indexes in Chapter 3 and
 Part III.
@@ -100,13 +100,13 @@ On a high level, we saw that storage engines fall into two broad categories: tho
 mized for transaction processing (OLTP), and those optimized for analytics (OLAP).
 There are big differences between the access patterns in those use cases:
 
-• OLTP systems are typically user-facing, which means that they may see a huge
+1. OLTP systems are typically user-facing, which means that they may see a huge
 volume of requests. In order to handle the load, applications usually only touch a
 small number of records in each query. The application requests records using
 some kind of key, and the storage engine uses an index to find the data for the
 requested key. Disk seek time is often the bottleneck here.
 
-• Data warehouses and similar analytic systems are less well known, because they
+2. Data warehouses and similar analytic systems are less well known, because they
 are primarily used by business analysts, not by end users. They handle a much
 lower volume of queries than OLTP systems, but each query is typically very
 demanding, requiring many millions of records to be scanned in a short time.
@@ -114,11 +114,11 @@ Disk bandwidth (not seek time) is often the bottleneck here, and column-
 oriented storage is an increasingly popular solution for this kind of workload.
 On the OLTP side, we saw storage engines from two main schools of thought:
 
-• The log-structured school, which only permits appending to files and deleting
+3. The log-structured school, which only permits appending to files and deleting
 obsolete files, but never updates a file that has been written. Bitcask, SSTables,
 LSM-trees, LevelDB, Cassandra, HBase, Lucene, and others belong to this group.
 
-• The update-in-place school, which treats the disk as a set of fixed-size pages that
+4. The update-in-place school, which treats the disk as a set of fixed-size pages that
 can be overwritten. B-trees are the biggest example of this philosophy, being used
 in all major relational databases and also many nonrelational ones.
 Log-structured storage engines are a comparatively recent development. Their key
@@ -172,13 +172,13 @@ We discussed several data encoding formats and their compatibility properties:
 Programming language–specific encodings are restricted to a single program‐
 ming language and often fail to provide forward and backward compatibility.
 
-• Textual formats like JSON, XML, and CSV are widespread, and their compatibil‐
+1. Textual formats like JSON, XML, and CSV are widespread, and their compatibil‐
 ity depends on how you use them. They have optional schema languages, which
 are sometimes helpful and sometimes a hindrance. These formats are somewhat
 vague about datatypes, so you have to be careful with things like numbers and
 binary strings.
 
-• Binary schema–driven formats like Thrift, Protocol Buffers, and Avro allow
+2. Binary schema–driven formats like Thrift, Protocol Buffers, and Avro allow
 compact, efficient encoding with clearly defined forward and backward compati‐
 bility semantics. The schemas can be useful for documentation and code genera‐
 tion in statically typed languages. However, they have the downside that data
@@ -186,13 +186,13 @@ needs to be decoded before it is human-readable.
 We also discussed several modes of dataflow, illustrating different scenarios in which
 data encodings are important:
 
-• Databases, where the process writing to the database encodes the data and the
+3. Databases, where the process writing to the database encodes the data and the
 process reading from the database decodes it
 
-• RPC and REST APIs, where the client encodes a request, the server decodes the
+4. RPC and REST APIs, where the client encodes a request, the server decodes the
 request and encodes a response, and the client finally decodes the response
 
-• Asynchronous message passing (using message brokers or actors), where nodes
+5. Asynchronous message passing (using message brokers or actors), where nodes
 communicate by sending each other messages that are encoded by the sender
 and decoded by the recipient
 
@@ -205,16 +205,19 @@ deployments be frequent.
 There are various reasons why you might want to distribute a database across multi‐
 ple machines:
 
-Scalability
+### Scalability
+
 If your data volume, read load, or write load grows bigger than a single machine
 can handle, you can potentially spread the load across multiple machines.
 
-Fault tolerance/high availability
+### Fault tolerance/high availability
+
 If your application needs to continue working even if one machine (or several
 machines, or the network, or an entire datacenter) goes down, you can use multi‐
 ple machines to give you redundancy. When one fails, another one can take over.
 
-Latency
+### Latency
+
 If you have users around the world, you might want to have servers at various
 locations worldwide so that each user can be served from a datacenter that is geo‐
 graphically close to them. That avoids the users having to wait for network pack‐
@@ -276,13 +279,13 @@ into details on the issues that arise when data is distributed.
 
 There are two common ways data is distributed across multiple nodes:
 
-Replication
+### Replication
 Keeping a copy of the same data on several different nodes, potentially in differ‐
 ent locations. Replication provides redundancy: if some nodes are unavailable,
 the data can still be served from the remaining nodes. Replication can also help
 improve performance. We discuss replication in Chapter 5.
 
-Partitioning
+### Partitioning
 Splitting a big database into smaller subsets called partitions so that different par‐
 titions can be assigned to different nodes (also known as sharding). We discuss
 partitioning in Chapter 6.
@@ -295,18 +298,18 @@ Figure II-1.
 In this chapter we looked at the issue of replication. Replication can serve several
 purposes:
 
-High availability
+### High availability
 Keeping the system running, even when one machine (or several machines, or an
 entire datacenter) goes down
 
-Disconnected operation
+### Disconnected operation
 Allowing an application to continue working when there is a network interrup‐
 tion
 
-Latency
+### Latency
 Placing data geographically close to users, so that users can interact with it faster
 
-Scalability
+### Scalability
 Being able to handle a higher volume of reads than a single machine could han‐
 dle, by performing reads on replicas
 
@@ -319,17 +322,17 @@ of fault, such as silent data corruption due to software bugs).
 
 We discussed three main approaches to replication:
 
-Single-leader replication
+### Single-leader replication
 Clients send all writes to a single node (the leader), which sends a stream of data
 change events to the other replicas (followers). Reads can be performed on any
 replica, but reads from followers might be stale.
 
-Multi-leader replication
+### Multi-leader replication
 Clients send each write to one of several leader nodes, any of which can accept
 writes. The leaders send streams of data change events to each other and to any
 follower nodes.
 
-Leaderless replication
+### Leaderless replication
 Clients send each write to several nodes, and read from several nodes in parallel
 in order to detect and correct nodes with stale data.
 
@@ -350,14 +353,14 @@ We looked at some strange effects that can be caused by replication lag, and we 
 cussed a few consistency models which are helpful for deciding how an application
 should behave under replication lag:
 
-Read-after-write consistency
+### Read-after-write consistency
 Users should always see data that they submitted themselves.
 
-Monotonic reads
+### Monotonic reads
 After users have seen the data at one point in time, they shouldn’t later see the
 data from some earlier point in time.
 
-Consistent prefix reads
+### Consistent prefix reads
 Users should see the data in a state that makes causal sense: for example, seeing a
 question and its reply in the correct order.
 
@@ -380,14 +383,14 @@ requires choosing a partitioning scheme that is appropriate to your data, and re
 lancing the partitions when nodes are added to or removed from the cluster.
 We discussed two main approaches to partitioning:
 
-• Key range partitioning, where keys are sorted, and a partition owns all the keys
+1. Key range partitioning, where keys are sorted, and a partition owns all the keys
 from some minimum up to some maximum. Sorting has the advantage that effi‐
 cient range queries are possible, but there is a risk of hot spots if the application
 often accesses keys that are close together in the sorted order.
 In this approach, partitions are typically rebalanced dynamically by splitting the
 range into two subranges when a partition gets too big.
 
-• Hash partitioning, where a hash function is applied to each key, and a partition
+2. Hash partitioning, where a hash function is applied to each key, and a partition
 owns a range of hashes. This method destroys the ordering of keys, making range
 queries inefficient, but may distribute load more evenly.
 
@@ -402,12 +405,12 @@ part of the key to identify the partition and another part for the sort order.
 We also discussed the interaction between partitioning and secondary indexes. A sec‐
 ondary index also needs to be partitioned, and there are two methods:
 
-• Document-partitioned indexes (local indexes), where the secondary indexes are
+1. Document-partitioned indexes (local indexes), where the secondary indexes are
 stored in the same partition as the primary key and value. This means that only a
 single partition needs to be updated on write, but a read of the secondary index
 requires a scatter/gather across all partitions.
 
-• Term-partitioned indexes (global indexes), where the secondary indexes are parti‐
+2. Term-partitioned indexes (global indexes), where the secondary indexes are parti‐
 tioned separately, using the indexed values. An entry in the secondary index may
 include records from all partitions of the primary key. When a document is writ‐
 ten, several partitions of the secondary index need to be updated; however, a read
@@ -447,33 +450,33 @@ discussed several widely used isolation levels, in particular read committed, sn
 isolation (sometimes called repeatable read), and serializable. We characterized those
 isolation levels by discussing various examples of race conditions:
 
-Dirty reads
+### Dirty reads
 One client reads another client’s writes before they have been committed. The
 read committed isolation level and stronger levels prevent dirty reads.
 
-Dirty writes
+### Dirty writes
 One client overwrites data that another client has written, but not yet committed.
 Almost all transaction implementations prevent dirty writes.
 
-Read skew (nonrepeatable reads)
+### Read skew (nonrepeatable reads)
 A client sees different parts of the database at different points in time. This issue
 is most commonly prevented with snapshot isolation, which allows a transaction
 to read from a consistent snapshot at one point in time. It is usually implemented
 with multi-version concurrency control (MVCC).
 
-Lost updates
+### Lost updates
 Two clients concurrently perform a read-modify-write cycle. One overwrites the
 other’s write without incorporating its changes, so data is lost. Some implemen‐
 tations of snapshot isolation prevent this anomaly automatically, while others
 require a manual lock ( SELECT FOR UPDATE ).
 
-Write skew
+### Write skew
 A transaction reads something, makes a decision based on the value it saw, and
 writes the decision to the database. However, by the time the write is made, the
 premise of the decision is no longer true. Only serializable isolation prevents this
 anomaly.
 
-Phantom reads
+### Phantom reads
 A transaction reads objects that match some search condition. Another client
 makes a write that affects the results of that search. Snapshot isolation prevents
 straightforward phantom reads, but phantoms in the context of write skew
@@ -489,11 +492,11 @@ If you can make each transaction very fast to execute, and the transaction
 throughput is low enough to process on a single CPU core, this is a simple and
 effective option.
 
-Two-phase locking
+### Two-phase locking
 For decades this has been the standard way of implementing serializability, but
 many applications avoid using it because of its performance characteristics.
 
-Serializable snapshot isolation (SSI)
+### Serializable snapshot isolation (SSI)
 A fairly new algorithm that avoids most of the downsides of the previous
 approaches. It uses an optimistic approach, allowing transactions to proceed
 without blocking. When a transaction wants to commit, it is checked, and it is
@@ -508,16 +511,16 @@ database feature, no matter which data model is used.
 In this chapter we have discussed a wide range of problems that can occur in dis‐
 tributed systems, including:
 
-• Whenever you try to send a packet over the network, it may be lost or arbitrarily
+1. Whenever you try to send a packet over the network, it may be lost or arbitrarily
 delayed. Likewise, the reply may be lost or delayed, so if you don’t get a reply,
 you have no idea whether the message got through.
 
-• A node’s clock may be significantly out of sync with other nodes (despite your
+2. A node’s clock may be significantly out of sync with other nodes (despite your
 best efforts to set up NTP), it may suddenly jump forward or back in time, and
 relying on it is dangerous because you most likely don’t have a good measure of
 your clock’s error interval.
 
-• A process may pause for a substantial amount of time at any point in its execu‐
+3. A process may pause for a substantial amount of time at any point in its execu‐
 tion (perhaps due to a stop-the-world garbage collector), be declared dead by
 other nodes, and then come back to life again without realizing that it was
 paused.
@@ -606,25 +609,25 @@ consensus and are equivalent to each other (in the sense that if you have a solu
 for one of them, you can easily transform it into a solution for one of the others).
 Such equivalent problems include:
 
-Linearizable compare-and-set registers
+### Linearizable compare-and-set registers
 The register needs to atomically decide whether to set its value, based on whether
 its current value equals the parameter given in the operation.
 
-Atomic transaction commit
+### Atomic transaction commit
 A database must decide whether to commit or abort a distributed transaction.
 
-Total order broadcast
+### Total order broadcast
 The messaging system must decide on the order in which to deliver messages.
 
-Locks and leases
+### Locks and leases
 When several clients are racing to grab a lock or lease, the lock decides which one
 successfully acquired it.
 
-Membership/coordination service
+### Membership/coordination service
 Given a failure detector (e.g., timeouts), the system must decide which nodes are
 alive, and which should be considered dead because their sessions timed out.
 
-Uniqueness constraint
+### Uniqueness constraint
 When several transactions concurrently try to create conflicting records with the
 same key, the constraint must decide which one to allow and which should fail
 with a constraint violation.
@@ -707,14 +710,14 @@ tant things that needs to be done in a nontrivial application.
 On a high level, systems that store and process data can be grouped into two broad
 categories:
 
-Systems of record
+### Systems of record
 A system of record, also known as source of truth, holds the authoritative version
 of your data. When new data comes in, e.g., as user input, it is first written here.
 Each fact is represented exactly once (the representation is typically normalized).
 If there is any discrepancy between another system and the system of record,
 then the value in the system of record is (by definition) the correct one.
 
-Derived data systems
+### Derived data systems
 Data in a derived system is the result of taking some existing data from another
 system and transforming or processing it in some way. If you lose derived data,
 you can recreate it from the original source. A classic example is a cache: data can
@@ -758,7 +761,7 @@ initial input and final output of a job is still usually HDFS.
 The two main problems that distributed batch processing frameworks need to solve
 are:
 
-Partitioning
+### Partitioning
 In MapReduce, mappers are partitioned according to input file blocks. The out‐
 put of mappers is repartitioned, sorted, and merged into a configurable number
 of reducer partitions. The purpose of this process is to bring all the related data—
@@ -766,7 +769,7 @@ e.g., all the records with the same key—together in the same place.
 Post-MapReduce dataflow engines try to avoid sorting unless it is required, but
 they otherwise take a broadly similar approach to partitioning.
 
-Fault tolerance
+### Fault tolerance
 MapReduce frequently writes to disk, which makes it easy to recover from an
 individual failed task without restarting the entire job but slows down execution
 in the failure-free case. Dataflow engines perform less materialization of inter‐
@@ -778,20 +781,20 @@ We discussed several join algorithms for MapReduce, most of which are also inter
 nally used in MPP databases and dataflow engines. They also provide a good illustra‐
 tion of how partitioned algorithms work:
 
-Sort-merge joins
+### Sort-merge joins
 Each of the inputs being joined goes through a mapper that extracts the join key.
 By partitioning, sorting, and merging, all the records with the same key end up
 going to the same call of the reducer. This function can then output the joined
 records.
 
-Broadcast hash joins
+### Broadcast hash joins
 One of the two join inputs is small, so it is not partitioned and it can be entirely
 loaded into a hash table. Thus, you can start a mapper for each partition of the
 large join input, load the hash table for the small input into each mapper, and
 then scan over the large input one record at a time, querying the hash table for
 each record.
 
-Partitioned hash joins
+### Partitioned hash joins
 If the two join inputs are partitioned in the same way (using the same key, same
 hash function, and same number of partitions), then the hash table approach can
 be used independently for each partition.
@@ -833,7 +836,7 @@ brokers and event logs serve as the streaming equivalent of a filesystem.
 
 We spent some time comparing two types of message brokers:
 
-AMQP/JMS-style message broker
+### AMQP/JMS-style message broker
 The broker assigns individual messages to consumers, and consumers acknowl‐
 edge individual messages when they have been successfully processed. Messages
 are deleted from the broker once they have been acknowledged. This approach is
@@ -842,7 +845,7 @@ flow” on page 136), for example in a task queue, where the exact order of mes�
 sage processing is not important and where there is no need to go back and read
 old messages again after they have been processed.
 
-Log-based message broker
+### Log-based message broker
 The broker assigns all messages in a partition to the same consumer node, and
 always delivers messages in the same order. Parallelism is achieved through par‐
 titioning, and consumers track their progress by checkpointing the offset of the
@@ -883,20 +886,20 @@ was complete.
 
 We distinguished three types of joins that may appear in stream processes:
 
-Stream-stream joins
+### Stream-stream joins
 Both input streams consist of activity events, and the join operator searches for
 related events that occur within some window of time. For example, it may
 match two actions taken by the same user within 30 minutes of each other. The
 two join inputs may in fact be the same stream (a self-join) if you want to find
 related events within that one stream.
 
-Stream-table joins
+### Stream-table joins
 One input stream consists of activity events, while the other is a database change‐
 log. The changelog keeps a local copy of the database up to date. For each activity
 event, the join operator queries the database and outputs an enriched activity
 event.
 
-Table-table joins
+### Table-table joins
 Both input streams are database changelogs. In this case, every change on one
 side is joined with the latest state of the other side. The result is a stream of
 changes to the materialized view of the join between the two tables.
