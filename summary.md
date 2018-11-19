@@ -822,3 +822,148 @@ this case, a job is never complete, because at any time there may still be more 
 coming in. We shall see that stream and batch processing are similar in some
 respects, but the assumption of unbounded streams also changes a lot about how we
 build systems.
+
+# Chapter 11: Stream Processing
+
+In this chapter we have discussed event streams, what purposes they serve, and how
+to process them. In some ways, stream processing is very much like the batch pro‐
+cessing we discussed in Chapter 10, but done continuously on unbounded (never-
+ending) streams rather than on a fixed-size input. From this perspective, message
+brokers and event logs serve as the streaming equivalent of a filesystem.
+
+We spent some time comparing two types of message brokers:
+
+AMQP/JMS-style message broker
+The broker assigns individual messages to consumers, and consumers acknowl‐
+edge individual messages when they have been successfully processed. Messages
+are deleted from the broker once they have been acknowledged. This approach is
+appropriate as an asynchronous form of RPC (see also “Message-Passing Data‐
+flow” on page 136), for example in a task queue, where the exact order of mes‐
+sage processing is not important and where there is no need to go back and read
+old messages again after they have been processed.
+
+Log-based message broker
+The broker assigns all messages in a partition to the same consumer node, and
+always delivers messages in the same order. Parallelism is achieved through par‐
+titioning, and consumers track their progress by checkpointing the offset of the
+last message they have processed. The broker retains messages on disk, so it is
+possible to jump back and reread old messages if necessary.
+
+The log-based approach has similarities to the replication logs found in databases
+(see Chapter 5) and log-structured storage engines (see Chapter 3). We saw that this
+approach is especially appropriate for stream processing systems that consume input
+streams and generate derived state or derived output streams.
+
+In terms of where streams come from, we discussed several possibilities: user activity
+events, sensors providing periodic readings, and data feeds (e.g., market data in
+finance) are naturally represented as streams. We saw that it can also be useful to
+think of the writes to a database as a stream: we can capture the changelog—i.e., the
+history of all changes made to a database—either implicitly through change data cap‐
+ture or explicitly through event sourcing. Log compaction allows the stream to retain
+a full copy of the contents of a database.
+
+Representing databases as streams opens up powerful opportunities for integrating
+systems. You can keep derived data systems such as search indexes, caches, and ana‐
+lytics systems continually up to date by consuming the log of changes and applying
+them to the derived system. You can even build fresh views onto existing data by
+starting from scratch and consuming the log of changes from the beginning all the
+way to the present.
+
+The facilities for maintaining state as streams and replaying messages are also the
+basis for the techniques that enable stream joins and fault tolerance in various stream
+processing frameworks. We discussed several purposes of stream processing, includ‐
+ing searching for event patterns (complex event processing), computing windowed
+aggregations (stream analytics), and keeping derived data systems up to date (materi‐
+alized views).
+
+We then discussed the difficulties of reasoning about time in a stream processor,
+including the distinction between processing time and event timestamps, and the
+problem of dealing with straggler events that arrive after you thought your window
+was complete.
+
+We distinguished three types of joins that may appear in stream processes:
+
+Stream-stream joins
+Both input streams consist of activity events, and the join operator searches for
+related events that occur within some window of time. For example, it may
+match two actions taken by the same user within 30 minutes of each other. The
+two join inputs may in fact be the same stream (a self-join) if you want to find
+related events within that one stream.
+
+Stream-table joins
+One input stream consists of activity events, while the other is a database change‐
+log. The changelog keeps a local copy of the database up to date. For each activity
+event, the join operator queries the database and outputs an enriched activity
+event.
+
+Table-table joins
+Both input streams are database changelogs. In this case, every change on one
+side is joined with the latest state of the other side. The result is a stream of
+changes to the materialized view of the join between the two tables.
+
+Finally, we discussed techniques for achieving fault tolerance and exactly-once
+semantics in a stream processor. As with batch processing, we need to discard the
+partial output of any failed tasks. However, since a stream process is long-running
+and produces output continuously, we can’t simply discard all output. Instead, a
+finer-grained recovery mechanism can be used, based on microbatching, checkpoint‐
+ing, transactions, or idempotent writes.
+
+# Chapter 12: The Future of Data Systems
+
+In this chapter we discussed new approaches to designing data systems, and I
+included my personal opinions and speculations about the future. We started with
+the observation that there is no one single tool that can efficiently serve all possible
+use cases, and so applications necessarily need to compose several different pieces of
+software to accomplish their goals. We discussed how to solve this data integration
+problem by using batch processing and event streams to let data changes flow
+between different systems.
+
+In this approach, certain systems are designated as systems of record, and other data
+is derived from them through transformations. In this way we can maintain indexes,
+materialized views, machine learning models, statistical summaries, and more. By
+making these derivations and transformations asynchronous and loosely coupled, a
+problem in one area is prevented from spreading to unrelated parts of the system,
+increasing the robustness and fault-tolerance of the system as a whole.
+
+Expressing dataflows as transformations from one dataset to another also helps
+evolve applications: if you want to change one of the processing steps, for example to
+change the structure of an index or cache, you can just rerun the new transformation
+code on the whole input dataset in order to rederive the output. Similarly, if some‐
+thing goes wrong, you can fix the code and reprocess the data in order to recover.
+
+These processes are quite similar to what databases already do internally, so we recast
+the idea of dataflow applications as unbundling the components of a database, and
+building an application by composing these loosely coupled components.
+Derived state can be updated by observing changes in the underlying data. Moreover,
+the derived state itself can further be observed by downstream consumers. We can
+even take this dataflow all the way through to the end-user device that is displaying
+the data, and thus build user interfaces that dynamically update to reflect data
+changes and continue to work offline.
+
+Next, we discussed how to ensure that all of this processing remains correct in the
+presence of faults. We saw that strong integrity guarantees can be implemented scala‐
+bly with asynchronous event processing, by using end-to-end operation identifiers to
+make operations idempotent and by checking constraints asynchronously. Clients
+can either wait until the check has passed, or go ahead without waiting but risk hav‐
+ing to apologize about a constraint violation. This approach is much more scalable
+and robust than the traditional approach of using distributed transactions, and fits
+with how many business processes work in practice.
+
+By structuring applications around dataflow and checking constraints asynchro‐
+nously, we can avoid most coordination and create systems that maintain integrity
+but still perform well, even in geographically distributed scenarios and in the pres‐
+ence of faults. We then talked a little about using audits to verify the integrity of data
+and detect corruption.
+
+Finally, we took a step back and examined some ethical aspects of building data-
+intensive applications. We saw that although data can be used to do good, it can also
+do significant harm: making justifying decisions that seriously affect people’s lives
+and are difficult to appeal against, leading to discrimination and exploitation, nor‐
+malizing surveillance, and exposing intimate information. We also run the risk of
+data breaches, and we may find that a well-intentioned use of data has unintended
+consequences.
+
+As software and data are having such a large impact on the world, we engineers must
+remember that we carry a responsibility to work toward the kind of world that we
+want to live in: a world that treats people with humanity and respect. I hope that we
+can work together toward that goal.
